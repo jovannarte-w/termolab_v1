@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conversor de temperatura: Celsius, Kelvin, Fahrenheit y Rankine</title>
+  <meta name="description" content="Convierte temperaturas entre Celsius, Kelvin, Fahrenheit y Rankine con la fórmula aplicada paso a paso.">
+  <meta name="color-scheme" content="light dark">
+  <!-- Favicon embebido (data URI): evita una petición externa y el error 404 de favicon.ico -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='12' y='3' width='8' height='19' rx='4' fill='%231b3a63'/%3E%3Ccircle cx='16' cy='24' r='6' fill='%23e5532d'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <div class="temp-strip" aria-hidden="true"></div>
+
+  <header class="site-header wrap">
+    <div class="site-title">
+      <h1>Conversor de temperatura</h1>
+      <p class="lead">Celsius, Kelvin, Fahrenheit y Rankine, con la fórmula aplicada en cada conversión.</p>
+    </div>
+    <button id="theme-toggle" class="btn btn-secondary" type="button" aria-pressed="false">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Modo oscuro</span>
+    </button>
+  </header>
+
+  <main id="main" class="wrap layout">
+
+    <!-- Entrada de datos -->
+    <section class="card area-conv" aria-labelledby="h-convert">
+      <h2 id="h-convert">Conversión</h2>
+      <form id="converter-form" novalidate autocomplete="off">
+        <div class="field">
+          <label for="value-input">Valor a convertir</label>
+          <div class="input-group">
+            <input id="value-input" name="value" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" value="25" aria-describedby="value-hint error-msg">
+            <button id="sign-btn" class="btn btn-secondary btn-icon" type="button" aria-label="Cambiar signo del valor (positivo o negativo)">±</button>
+          </div>
+          <p id="value-hint" class="hint">Acepta coma o punto decimal. Ejemplos: -40, 36,6.</p>
+        </div>
+
+        <div class="scales">
+          <div class="field">
+            <label for="from-scale">Escala de origen</label>
+            <select id="from-scale" name="from">
+              <option value="C" selected>Celsius (°C)</option>
+              <option value="K">Kelvin (K)</option>
+              <option value="F">Fahrenheit (°F)</option>
+              <option value="R">Rankine (°R)</option>
+            </select>
+          </div>
+          <button id="swap-btn" class="btn btn-secondary btn-icon" type="button" aria-label="Intercambiar escalas de origen y destino">
+            <svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="field">
+            <label for="to-scale">Escala de destino</label>
+            <select id="to-scale" name="to">
+              <option value="C">Celsius (°C)</option>
+              <option value="K">Kelvin (K)</option>
+              <option value="F" selected>Fahrenheit (°F)</option>
+              <option value="R">Rankine (°R)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field field-narrow">
+          <label for="decimals">Decimales del resultado</label>
+          <select id="decimals" name="decimals">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+
+        <!-- Región viva: anuncia los errores de validación a lectores de pantalla -->
+        <p id="error-msg" class="error" aria-live="polite" aria-atomic="true"></p>
+
+        <div class="actions">
+          <button id="convert-btn" class="btn btn-primary" type="submit">Convertir</button>
+          <button id="clear-btn" class="btn btn-secondary" type="button">Limpiar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Resultado + termómetro -->
+    <section id="result-card" class="card area-result" data-zone="none" aria-labelledby="h-result">
+      <h2 id="h-result">Resultado</h2>
+      <div class="result-body">
+        <div class="result-main">
+          <p id="result-context" class="result-context">Ingresa un valor válido para ver la conversión.</p>
+          <p id="result-line" class="result-line"><span id="result-value" class="result-value">—</span> <span id="result-unit" class="result-unit"></span></p>
+          <p class="zone-badge"><span class="dot" aria-hidden="true"></span><span id="zone-label">Sin datos</span></p>
+          <button id="copy-btn" class="btn btn-secondary" type="button" disabled>
+            <svg class="icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span id="copy-label">Copiar resultado</span>
+          </button>
+        </div>
+
+        <figure class="thermo">
+          <svg id="thermo-svg" viewBox="0 0 100 300" role="img" aria-label="Termómetro sin datos" focusable="false">
+            <rect class="t-tube" x="28" y="12" width="24" height="238" rx="12"/>
+            <circle class="t-tube" cx="40" cy="262" r="28"/>
+            <rect class="t-cover" x="30" y="200" width="20" height="62"/>
+            <circle class="t-bulb" cx="40" cy="262" r="20"/>
+            <rect id="thermo-fill" class="t-fill" x="34" y="24" width="12" height="238" rx="6"/>
+            <g class="t-ticks">
+              <line x1="56" y1="262" x2="63" y2="262"/><text x="67" y="266">-50</text>
+              <line x1="56" y1="202.5" x2="63" y2="202.5"/><text x="67" y="207">0</text>
+              <line x1="56" y1="143" x2="63" y2="143"/><text x="67" y="147.5">50</text>
+              <line x1="56" y1="83.5" x2="63" y2="83.5"/><text x="67" y="88">100</text>
+              <line x1="56" y1="24" x2="63" y2="24"/><text x="67" y="28.5">150</text>
+            </g>
+          </svg>
+          <figcaption id="thermo-note">Escala de referencia: -50 a 150 °C.</figcaption>
+        </figure>
+      </div>
+      <ul class="legend" aria-label="Zonas de color del termómetro">
+        <li><span class="swatch swatch-cold" aria-hidden="true"></span>Frío: menos de 10 °C</li>
+        <li><span class="swatch swatch-mild" aria-hidden="true"></span>Templado: de 10 a 30 °C</li>
+        <li><span class="swatch swatch-hot" aria-hidden="true"></span>Caliente: más de 30 °C</li>
+      </ul>
+    </section>
+
+    <!-- Fórmula aplicada -->
+    <section class="card area-formula" aria-labelledby="h-formula">
+      <h2 id="h-formula">Fórmula aplicada</h2>
+      <p id="formula-summary" class="hint">Todas las conversiones pasan primero por Celsius.</p>
+      <ol id="formula-list" class="formula-list">
+        <li class="formula-empty">La fórmula con los valores sustituidos aparecerá aquí.</li>
+      </ol>
+    </section>
+
+    <!-- Historial -->
+    <section class="card area-history" aria-labelledby="h-history">
+      <div class="card-head">
+        <h2 id="h-history">Historial de la sesión</h2>
+        <button id="history-clear" class="btn btn-secondary btn-small" type="button" disabled>Borrar historial</button>
+      </div>
+      <p id="history-empty" class="hint">Aún no hay conversiones guardadas. Presiona Convertir o Enter para registrar una (se conservan las últimas 10).</p>
+      <ol id="history-list" class="history-list" hidden></ol>
+    </section>
+
+    <!-- Contenido educativo -->
+    <section class="card area-edu" aria-labelledby="h-edu">
+      <h2 id="h-edu">Para entender las escalas</h2>
+
+      <div class="scale-grid">
+        <article>
+          <h3>Celsius (°C)</h3>
+          <p><strong>Qué representa:</strong> escala relativa. Históricamente fija 0 °C y 100 °C en el congelamiento y la ebullición del agua a 1 atm. Un grado Celsius tiene el mismo tamaño que un kelvin.</p>
+          <p><strong>Usos:</strong> clima, cocina, medicina y trabajo de laboratorio en la mayor parte del mundo.</p>
+        </article>
+        <article>
+          <h3>Kelvin (K)</h3>
+          <p><strong>Qué representa:</strong> escala absoluta del Sistema Internacional. Su cero es el cero absoluto. Se escribe «K», sin símbolo de grado.</p>
+          <p><strong>Usos:</strong> física, química, termodinámica, astronomía y leyes de los gases.</p>
+        </article>
+        <article>
+          <h3>Fahrenheit (°F)</h3>
+          <p><strong>Qué representa:</strong> escala relativa. El agua se congela a 32 °F y hierve a 212 °F a 1 atm, con 180 grados entre ambos puntos.</p>
+          <p><strong>Usos:</strong> vida cotidiana y meteorología en Estados Unidos y algunos territorios.</p>
+        </article>
+        <article>
+          <h3>Rankine (°R)</h3>
+          <p><strong>Qué representa:</strong> escala absoluta con grados del tamaño Fahrenheit. Su cero también es el cero absoluto.</p>
+          <p><strong>Usos:</strong> termodinámica e ingeniería con unidades inglesas.</p>
+        </article>
+      </div>
+
+      <h3>El cero absoluto</h3>
+      <p>Es el límite inferior de la temperatura: el estado de mínima energía térmica de un sistema. La tercera ley de la termodinámica establece que no puede alcanzarse en un número finito de pasos, y no existen temperaturas por debajo de él. Por eso la aplicación rechaza cualquier valor menor al mínimo de la escala de origen.</p>
+
+      <div class="table-scroll" role="region" aria-label="Tabla de puntos de referencia" tabindex="0">
+        <table>
+          <caption>Puntos de referencia en las cuatro escalas (agua a 1 atm)</caption>
+          <thead>
+            <tr><th scope="col">Referencia</th><th scope="col">°C</th><th scope="col">K</th><th scope="col">°F</th><th scope="col">°R</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Cero absoluto</th><td>-273.15</td><td>0</td><td>-459.67</td><td>0</td></tr>
+            <tr><th scope="row">Congelamiento del agua</th><td>0</td><td>273.15</td><td>32</td><td>491.67</td></tr>
+            <tr><th scope="row">Ebullición del agua</th><td>100</td><td>373.15</td><td>212</td><td>671.67</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Ejemplo resuelto: 25 °C a °F</h3>
+      <ol class="worked">
+        <li>Elige la fórmula de Celsius a Fahrenheit: <code>°F = °C × 9/5 + 32</code>.</li>
+        <li>Sustituye el valor: <code>°F = 25 × 9/5 + 32</code>.</li>
+        <li>Multiplica: <code>25 × 9/5 = 45</code>.</li>
+        <li>Suma: <code>45 + 32 = 77</code>.</li>
+        <li>Resultado: <strong>25 °C = 77 °F</strong>. Es un valor válido porque 25 °C está sobre el cero absoluto (-273.15 °C).</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <p>HTML, CSS y JavaScript puro. Funciona sin conexión y no guarda datos en tu navegador.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <p id="sr-status" class="sr-only" role="status" aria-live="polite"></p>
+</body>
+</html>
